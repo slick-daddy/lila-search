@@ -120,10 +120,32 @@ object IntegrationSuite extends IOSuite:
               100
             )
           )
+          _ <- res.esClient.store(
+            Index.Team,
+            Id("sf-schonwald"),
+            TeamSource(
+              name = "SF-Schönwald",
+              description = "chess club in schonwald",
+              100
+            )
+          )
+          _ <- res.esClient.store(
+            Index.Team,
+            Id("sf-only"),
+            TeamSource(
+              name = "SF Randonneurs",
+              description = "cycling club",
+              50
+            )
+          )
           _ <- res.esClient.refreshIndex(Index.Team)
           x <- service.search(Query.team("team name"), from, size)
           y <- service.search(Query.team("team description"), from, size)
-        yield expect(x.hitIds.size == 1 && x == y)
+          hyphen <- service.search(Query.team("SF-Schönwald"), from, size)
+        yield expect.all(
+          x.hitIds.size == 1 && x == y,
+          hyphen.hitIds == List(Id("sf-schonwald"))
+        )
 
   test("study"): res =>
     val withFilters = (cf: TagFilter) => Some(ChapterMode.filters(cf))
